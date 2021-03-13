@@ -3,20 +3,20 @@
 #include "Customer.h"
 #include "EODRecord.h"
 #include "SalesOrder.h"
-#include <iostream>
+#include <cstring>
 #include <iomanip>
 #include <algorithm>
+#include <utility>
 
 using namespace std;
 
 /* Check format fo the command line args */
-void verifyCommandLineFormat(int argc, char **argv)
+void verifyCommandLineFormat(int argc)
 {
 	/* verify format of stdin from command line */
 	if(argc != 2)
-	{	
-		cerr << "Invalid format. The correcct format is:\n./ordering <inputFile>\n";
-		// fprintf(stderr, "Invalid format. The correcct format is:\n./ordering <inputFile>\n");
+	{
+		cerr << "Invalid format. The correct format is:\n./ordering <inputFile>\n";
 		exit(-1);
 	}
 }
@@ -24,11 +24,11 @@ void verifyCommandLineFormat(int argc, char **argv)
 static int invoice = 1000;
 
 void expressShip(vector<Customer>& customers, SalesOrder S) {
-	for (int i = 0; i < customers.size(); i++) {
-		if (customers.at(i).getCustomerNumber() == S.getCustomerNumber()) {
-			cout << "OP: customer " << setfill('0') << setw(4) << customers.at(i).getCustomerNumber() << ": shipped quantity " << customers.at(i).getOrderQuantity() << endl;
-			cout << "SC: customer " << setfill('0') << setw(4) << customers.at(i).getCustomerNumber() << ": invoice " << invoice++ << ": date " << S.getOrderDate() << ": quantity " << customers.at(i).getOrderQuantity() << endl;
-			customers.at(i).setOrderQuantity(0);
+	for (auto & customer : customers) {
+		if (customer.getCustomerNumber() == S.getCustomerNumber()) {
+			cout << "OP: customer " << setfill('0') << setw(4) << customer.getCustomerNumber() << ": shipped quantity " << customer.getOrderQuantity() << endl;
+			cout << "SC: customer " << setfill('0') << setw(4) << customer.getCustomerNumber() << ": invoice " << invoice++ << ": date " << S.getOrderDate() << ": quantity " << customer.getOrderQuantity() << endl;
+			customer.setOrderQuantity(0);
 		}
 	}
 }
@@ -52,10 +52,10 @@ void updateQuantity(vector<Customer> &customerRecord, SalesOrder s) {
 
 vector<int> canShip(vector<SalesOrder> salesOrderRec, EODRecord E) {
 	vector<int> customerNumbers;
-	for (int i = 0; i < salesOrderRec.size(); i++) {
-		if (salesOrderRec.at(i).getOrderDate() == E.getDate() && salesOrderRec.at(i).getOrderQuantity() != 0) {
-			customerNumbers.push_back(salesOrderRec.at(i).getCustomerNumber());
-			salesOrderRec.at(i).setOrderQuantity(0);
+	for (auto & i : salesOrderRec) {
+		if (i.getOrderDate() == E.getDate() && i.getOrderQuantity() != 0) {
+			customerNumbers.push_back(i.getCustomerNumber());
+			i.setOrderQuantity(0);
 		}
 	}
 	return customerNumbers;
@@ -63,8 +63,8 @@ vector<int> canShip(vector<SalesOrder> salesOrderRec, EODRecord E) {
 
 void removeDuplicates(vector<int>& v)
 {
-	vector<int>::iterator end = v.end();
-	for (vector<int>::iterator it = v.begin(); it != end; ++it) {
+	auto end = v.end();
+	for (auto it = v.begin(); it != end; ++it) {
 		end = remove(it + 1, end, *it);
 	}
 
@@ -74,18 +74,18 @@ void removeDuplicates(vector<int>& v)
 
 void ship(vector<Customer>& customers, vector<SalesOrder> salesOrderRec, EODRecord eod ) {
 	cout << "OP: end of day " << eod.getDate() << endl;
-	vector<int> customerNumbers = canShip(salesOrderRec, eod);
+	vector<int> customerNumbers = canShip(std::move(salesOrderRec), eod);
 	removeDuplicates(customerNumbers);
-	if (customerNumbers.size() == 0) {
+	if (customerNumbers.empty()) {
 		return;
 	}
 	else {
-		for (int i = 0; i < customers.size(); i++) {
-			for (int j = 0; j < customerNumbers.size(); j++) {
-				if (customers.at(i).getCustomerNumber() == customerNumbers.at(j) && customers.at(i).getOrderQuantity() != 0 ) {
-					cout << "OP: customer " << setfill('0') << setw(4) << customers.at(i).getCustomerNumber() << ": shipped quantity " << customers.at(i).getOrderQuantity() << endl;
-					cout << "SC: customer " << setfill('0') << setw(4) << customers.at(i).getCustomerNumber() << ": invoice " << invoice++ << ": date " << eod.getDate() << ": quantity " << customers.at(i).getOrderQuantity() << endl;
-					customers.at(i).setOrderQuantity(0);
+		for (auto & customer : customers) {
+			for (int customerNumber : customerNumbers) {
+				if (customer.getCustomerNumber() == customerNumber && customer.getOrderQuantity() != 0 ) {
+					cout << "OP: customer " << setfill('0') << setw(4) << customer.getCustomerNumber() << ": shipped quantity " << customer.getOrderQuantity() << endl;
+					cout << "SC: customer " << setfill('0') << setw(4) << customer.getCustomerNumber() << ": invoice " << invoice++ << ": date " << eod.getDate() << ": quantity " << customer.getOrderQuantity() << endl;
+					customer.setOrderQuantity(0);
 				}
 			}
 		}
@@ -105,7 +105,8 @@ void readFile(const char* filename, vector<Customer> &customerRecord, vector <Sa
 				Customer C(line);
 				customerRecord.push_back(C);
 				cout << "OP: Customer " << setfill('0') << setw(4) << C.getCustomerNumber() << " added\n";
-			}
+                cout << "TEST >>>>>> :" << C.getCustomerName() << "\n";
+            }
 			else if (line.at(0) == 'S') {
 				SalesOrder S(line);
 				salesOrderRecord.push_back(S);
@@ -119,15 +120,14 @@ void readFile(const char* filename, vector<Customer> &customerRecord, vector <Sa
 		}
 	}
 	else {
-		cerr << "Failed opening file: " << filename << ". Error " << errno << ": " << strerror(errno);
+		cerr << "Failed opening file: \"" << filename << "\". Error " << errno << ": " << std::strerror(errno) << endl;
 		exit(-1);
 	}
 }
 
 int main(int argc, char *argv[]) {
-
 	/* check format fo the command line args */
-	verifyCommandLineFormat(argc, argv);
+    verifyCommandLineFormat(argc);
 	/* create vectors for each record */
 	vector<Customer> customerRecord;
 	vector<SalesOrder> salesOrderRecord;
