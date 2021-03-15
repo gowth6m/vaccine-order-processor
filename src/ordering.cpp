@@ -1,10 +1,8 @@
-#include <iostream>
-#include "CustomerRecord.h"
-#include "EODRecord.h"
-#include "SalesOrderRecord.h"
-#include "OrderProcessor.h"
+
 #include <algorithm>
 #include <utility>
+#include <iostream>
+#include "OrderProcessor.hpp"
 
 using namespace std;
 
@@ -12,9 +10,7 @@ using namespace std;
  * Function prototypes
  */
 string getFileExtension(const string &fileName);
-
 void verifyCommandLineFormat(int argc, char **argv);
-
 void errorChecker(int err);
 
 /**
@@ -24,14 +20,8 @@ int main(int argc, char *argv[]) {
     /* check format fo the command line args */
     verifyCommandLineFormat(argc, argv);
 
-    /* create vectors for each record */
-    vector<CustomerRecord> customerRecord;
-    vector<SalesOrderRecord> salesOrderRecord;
-    vector<EODRecord> EODs;
-
-    /* calls static function from OrderProcessor */
-    OrderProcessor::processOrder(argv[1], customerRecord, salesOrderRecord, EODs);
-
+    OrderProcessor orderProcessor(argv[1]);
+    orderProcessor.processFile(argv[1]);
     return EXIT_SUCCESS;
 }
 

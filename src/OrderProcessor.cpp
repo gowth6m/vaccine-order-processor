@@ -1,87 +1,65 @@
-#include "OrderProcessor.h"
+//
+// Created by Gowtham Ravindrathas on 15/03/2021.
+//
+
+#include <iostream>
+#include <fstream>
+#include "OrderProcessor.hpp"
+#include "Customer.hpp"
 
 using namespace std;
 
-int OrderProcessor::invoice = 1000;
+OrderProcessor::OrderProcessor(const char *filename) {
+    this->lineNumber = 0;
+    this->filename = filename;
+}
 
+void OrderProcessor::registerObserver(Observer *observer) {
+    observers.push_back(observer);
+}
 
-void OrderProcessor::expressShip(vector<CustomerRecord> &customers, SalesOrderRecord S) {
-    for (auto &customer : customers) {
-        if (customer.getCustomerNumber() == S.getCustomerNumber()) {
-            cout << "OP: customer " << setfill('0') << setw(4) << customer.getCustomerNumber() << ": shipped quantity "
-                 << customer.getOrderQuantity() << endl;
-            cout << "SC: customer " << setfill('0') << setw(4) << customer.getCustomerNumber() << ": invoice "
-                 << invoice++ << ": date " << S.getOrderDate() << ": quantity " << customer.getOrderQuantity() << endl;
-            customer.setOrderQuantity(0);
-        }
+void OrderProcessor::removeObserver(Observer *observer) {
+    auto iterator = std::find(observers.begin(), observers.end(), observer);
+
+    if (iterator != observers.end()) {
+        observers.erase(iterator);
     }
 }
 
-void OrderProcessor::updateQuantity(vector<CustomerRecord> &customerRecord, SalesOrderRecord s) {
-    for (int i = 0; i < customerRecord.size(); i++) {
-        if (customerRecord.at(i).getCustomerNumber() == s.getCustomerNumber()) {
-            if (s.getOrderType() == 'N') {
-                customerRecord.at(i).incrementQuantity(s.getOrderQuantity());
-                cout << "OP: customer " << setfill('0') << setw(4) << s.getCustomerNumber()
-                     << ": normal order: quantity " << s.getOrderQuantity() << endl;
-            } else {
-                customerRecord.at(i).incrementQuantity(s.getOrderQuantity());
-                cout << "OP: customer " << setfill('0') << setw(4) << s.getCustomerNumber()
-                     << ": EXPRESS order: quantity " << s.getOrderQuantity() << endl;
-                expressShip(customerRecord, s);
-            }
-            return;
-        }
+void OrderProcessor::notifyObservers() {
+    for (Observer *observer : observers) {
+        observer->update();
     }
 }
 
-vector<int> OrderProcessor::canShip(vector<SalesOrderRecord> salesOrderRec, EODRecord E) {
-    vector<int> customerNumbers;
-    for (auto &i : salesOrderRec) {
-        if (i.getOrderDate() == E.getDate() && i.getOrderQuantity() != 0) {
-            customerNumbers.push_back(i.getCustomerNumber());
-            i.setOrderQuantity(0);
-        }
-    }
-    return customerNumbers;
+void OrderProcessor::processCustomerRecord(string line) {
+    this->currentLine = line;
+    this->typeOfRecord = 'C';
+    this->lineNumber++;
+    this->registerObserver(new Customer(*this, line));
+    Customer* currentCustomer = dynamic_cast<Customer *>(this->observers.back());
+    cout << "OP: customer " << setfill('0') << setw(4) << currentCustomer->getCustomerNumber() << " added\n";
+//    free(currentCustomer);
 }
 
-void OrderProcessor::removeDuplicates(vector<int> &v) {
-    auto end = v.end();
-    for (auto it = v.begin(); it != end; ++it) {
-        end = remove(it + 1, end, *it);
-    }
-
-    v.erase(end, v.end());
+void OrderProcessor::processSaleOrderRecord(string line) {
+    this->currentLine = line;
+    this->typeOfRecord = 'S';
+    this->lineNumber++;
+    notifyObservers();
+    this->invoice++;
 }
 
-void OrderProcessor::ship(vector<CustomerRecord> &customers, vector<SalesOrderRecord> salesOrderRec, EODRecord eod) {
-    cout << "OP: end of day " << eod.getDate() << endl;
-    vector<int> customerNumbers = canShip(std::move(salesOrderRec), eod);
-    removeDuplicates(customerNumbers);
-    if (customerNumbers.empty()) {
-        return;
-    } else {
-        for (auto &customer : customers) {
-            for (int customerNumber : customerNumbers) {
-                if (customer.getCustomerNumber() == customerNumber && customer.getOrderQuantity() != 0) {
-                    cout << "OP: customer " << setfill('0') << setw(4) << customer.getCustomerNumber()
-                         << ": shipped quantity " << customer.getOrderQuantity() << endl;
-                    cout << "SC: customer " << setfill('0') << setw(4) << customer.getCustomerNumber() << ": invoice "
-                         << invoice++ << ": date " << eod.getDate() << ": quantity " << customer.getOrderQuantity()
-                         << endl;
-                    customer.setOrderQuantity(0);
-                }
-            }
-        }
-    }
+void OrderProcessor::processEODRecord(string line) {
+    this->currentLine = line;
+    this->typeOfRecord = 'E';
+    this->lineNumber++;
+    notifyObservers();
 }
 
-
-void
-OrderProcessor::processOrder(const char *filename, vector<CustomerRecord> &customerRecords, vector<SalesOrderRecord>
-&salesOrderRecords, vector<EODRecord> &EODs) {
-
+// read file & check 0th char -> processOrder()
+void OrderProcessor::processFile(const char *filename) {
+    // read file -> update typeOfRecord -> check error -> OrderProcessesor(fileLine)
     ifstream inFile;
     string line;
     inFile.open(filename);
@@ -89,31 +67,16 @@ OrderProcessor::processOrder(const char *filename, vector<CustomerRecord> &custo
 
     if (inFile.is_open()) {
         while (!inFile.eof()) {
-//            cout << lineNumber << "\n";
             getline(inFile, line);
-
             /* if C then turn line to Cus rec & add to vec */
             if (line.at(0) == 'C') {
-                CustomerRecord customerRecord(line, lineNumber);
-                customerRecords.push_back(customerRecord);
-                cout << "OP: CustomerRecord " << setfill('0') << setw(4) << customerRecord.getCustomerNumber() << " added\n";
-                lineNumber++;
+                processCustomerRecord(line);
 
-                /* if S then turn line to SO rec & add to vec */
             } else if (line.at(0) == 'S') {
-                SalesOrderRecord salesOrderRecord(line, lineNumber);
-                // check & compare if cusID in cus records
-                salesOrderRecords.push_back(salesOrderRecord);
-                updateQuantity(customerRecords, salesOrderRecord);
-                lineNumber++;
+                processSaleOrderRecord(line);
 
-                /* if E then turn line to EOD rec & add to vec */
             } else if (line.at(0) == 'E') {
-                EODRecord E(line);
-                EODs.push_back(E);
-                ship(customerRecords, salesOrderRecords, E);
-                lineNumber++;
-
+                processEODRecord(line);
             } else {
                 std::cerr << "Error in input file line " << lineNumber
                           << ", invalid line - doesn't start with C, S or E" << std::endl;
@@ -126,4 +89,22 @@ OrderProcessor::processOrder(const char *filename, vector<CustomerRecord> &custo
         inFile.close();
         exit(-1);
     }
+}
+
+
+// Getters and Setters
+int OrderProcessor::getLineNumber(){
+    return this->lineNumber;
+}
+
+char OrderProcessor::getTypeOfRecord() {
+    return this->typeOfRecord;
+}
+
+std::string OrderProcessor::getCurrentLine() {
+    return this->currentLine;
+}
+
+int OrderProcessor::getInvoice(){
+    return this->invoice;
 }
