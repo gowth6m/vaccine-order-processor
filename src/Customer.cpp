@@ -21,25 +21,19 @@ Customer::~Customer() {
 
 /** Runs when notifyObserver is called */
 void Customer::update() {
-        if (processor.getTypeOfRecord() == 'S') {
-            if(this->customerNumber == processCustomerNumber(processor.getCurrentLine(), 10, 4)) {
-                addOrder(processor.getCurrentLine());
-                std::cout << "OP: customer " << std::setfill('0') << std::setw(4) << this->customerNumber
-                          << ": normal order: quantity " << processCustomerNumber(processor.getCurrentLine(),14,3)
-                          << std::endl;
-            }
-        } else if (processor.getTypeOfRecord() == 'E') {
-            std::cout << "End of day order" << std::endl;
+    if (processor.getTypeOfRecord() == 'S') {
+        if (this->customerNumber == processCustomerNumber(processor.getCurrentLine(), 10, 4)) {
+            addSalesOrder(processor.getCurrentLine());
         }
+    } else if (processor.getTypeOfRecord() == 'E') {
+        if (this->orderQuantity != 0) {
+
+        }
+    } else if (processor.getTypeOfRecord() == 'E') {
+        std::cout << "End of day order" << std::endl;
+    }
 }
 
-void Customer::addOrder(std::string saleOrderRecord) {
-    int date = processCustomerNumber(saleOrderRecord,1,9);
-    char type = saleOrderRecord.at(9);
-    int quantity = processCustomerNumber(saleOrderRecord,14,3);
-    this->orderQuantity += quantity;
-    this->listOfOrders.push_back(Order(date, type, quantity));
-}
 
 int Customer::processCustomerNumber(const std::string &line, int startPos, int endPos) {
     try {
@@ -69,4 +63,26 @@ int Customer::processCustomerNumber(const std::string &line, int startPos, int e
 
 int Customer::getCustomerNumber() {
     return this->customerNumber;
+}
+
+void Customer::addSalesOrder(std::string saleOrderRecord) {
+    int date = processCustomerNumber(saleOrderRecord, 1, 9);
+    char type = saleOrderRecord.at(9);
+    int quantity = processCustomerNumber(saleOrderRecord, 14, 3);
+    this->orderQuantity += quantity;
+    this->listOfOrders.push_back(Order(date, type, quantity));
+
+    if (type == 'N') {
+        std::cout << "OP: customer " << std::setfill('0') << std::setw(4) << this->customerNumber
+                  << ": normal order: quantity " << quantity << std::endl;
+    } else if (type == 'X') {
+        std::cout << "OP: customer " << std::setfill('0') << std::setw(4) << this->customerNumber
+                  << ": EXPRESS order: quantity " << quantity << std::endl;
+        this->orderQuantity = 0;
+    } else {
+        std::cerr << "Error in input file line " << processor.getLineNumber()
+                  << ": sale order type invalid"
+                  << std::endl;
+        exit(-1);
+    }
 }

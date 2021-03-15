@@ -41,6 +41,8 @@ public:
 
 //    getter
     int getCustomerNumber();
+
+    void addSalesOrder(std::string basicString);
 };
 
 
