@@ -7,11 +7,10 @@
 #include "Customer.hpp"
 
 /** Constructor */
-Customer::Customer(OrderProcessor &processor, std::string line) : processor(processor) {
-    this->errorInLine = false;
-    this->customerName = line.substr(5, line.size() - 4);
+Customer::Customer(OrderProcessor &processor, int customerNo, std::string customerName) : processor(processor) {
+    this->customerName = customerName;
     this->orderQuantity = 0;
-    this->customerNumber = processCustomerNumber(line, 1, 4);
+    this->customerNumber = customerNo;
 }
 
 /** Destructor */
@@ -22,69 +21,52 @@ Customer::~Customer() {
 /** Runs when notifyObserver is called */
 void Customer::update() {
     if (processor.getTypeOfRecord() == 'S') {
-        if (this->customerNumber == processCustomerNumber(processor.getCurrentLine(), 10, 4)) {
-            addSalesOrder(processor.getCurrentLine());
+        if (this->customerNumber == processor.getCurrentCustomerNo()) {
+            processSalesOrder(processor.getCurrentLine());
         }
     } else if (processor.getTypeOfRecord() == 'E') {
-        if (this->orderQuantity != 0) {
-
+        if (this->orderQuantity > 0) {
+            shipOrders();
         }
-    } else if (processor.getTypeOfRecord() == 'E') {
-        std::cout << "End of day order" << std::endl;
     }
 }
 
+void Customer::processSalesOrder(std::string saleOrderRecord) {
 
-int Customer::processCustomerNumber(const std::string &line, int startPos, int endPos) {
-    try {
-        int customerNo = std::stoi(line.substr(startPos, endPos));
-        if(customerNo == 0) {
-            std::cerr << "Error in input file line " << processor.getLineNumber() << ": invalid conversion of customer number of 0000"
-                      << std::endl;
-            this->errorInLine = true;
-            exit(-1);
-        }
-        return customerNo;
-    }
-    catch(std::invalid_argument &e){
-        // if no conversion could be performed
-        std::cerr << "Error in input file line " << this->lineNumber << ": invalid conversion of customer number to "
-                  << &e << std::endl;
-        this->errorInLine = true;
+    if (processor.getCurrentOrderType() == 'N') {
+        this->orderQuantity += processor.getCurrentOrderQuantity();
+        processor.setCurrentOrderTotal(this->orderQuantity);
+        this->listOfOrders.push_back(Order(processor.getCurrentOrderDate(),
+                                           processor.getCurrentOrderType(),
+                                           processor.getCurrentOrderQuantity()));
+
+    } else if (processor.getCurrentOrderType() == 'X') {
+        this->orderQuantity += processor.getCurrentOrderQuantity();
+        processor.setCurrentOrderTotal(0);
+        shipOrders();
+
+    } else {
+        std::cerr << "Error in input file line "
+                  << processor.getLineNumber()
+                  << ": sale order type invalid"
+                  << std::endl;
         exit(-1);
     }
-    catch(std::out_of_range &e){
-        std::cerr << "Error in input file line " << this->lineNumber << ": customer record: customer number out of range during conversion "
-                  << &e << std::endl;
-        this->errorInLine = true;
-        exit(-1);
-    }
+}
+
+void Customer::shipOrders() {
+    /* clear the vector of orders, since they are all shipped */
+    std::cout << "SC: customer " << std::setfill('0') << std::setw(4) << this->customerNumber
+              << ": invoice " << processor.getInvoice() << ": date " << processor.getCurrentOrderDate()
+              << ": quantity " << this->orderQuantity << std::endl;
+    this->listOfOrders.clear();
+    this->orderQuantity = 0;
 }
 
 int Customer::getCustomerNumber() {
     return this->customerNumber;
 }
 
-void Customer::addSalesOrder(std::string saleOrderRecord) {
-    int date = processCustomerNumber(saleOrderRecord, 1, 9);
-    char type = saleOrderRecord.at(9);
-    int quantity = processCustomerNumber(saleOrderRecord, 14, 3);
-    this->orderQuantity += quantity;
-    this->listOfOrders.push_back(Order(date, type, quantity));
-
-    if (type == 'N') {
-//        std::cout << "OP: customer " << std::setfill('0') << std::setw(4) << this->customerNumber
-//                  << ": normal order: quantity " << quantity << std::endl;
-        processor.setCurrentOrderInfo(date, type, quantity);
-    } else if (type == 'X') {
-//        std::cout << "OP: customer " << std::setfill('0') << std::setw(4) << this->customerNumber
-//                  << ": EXPRESS order: quantity " << quantity << std::endl;
-        processor.setCurrentOrderInfo(date, type, quantity);
-        this->orderQuantity = 0;
-    } else {
-        std::cerr << "Error in input file line " << processor.getLineNumber()
-                  << ": sale order type invalid"
-                  << std::endl;
-        exit(-1);
-    }
+int Customer::getOrderQuantity() {
+    return this->orderQuantity;
 }

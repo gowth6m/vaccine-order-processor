@@ -6,12 +6,14 @@
 #include <fstream>
 #include "OrderProcessor.hpp"
 #include "Customer.hpp"
+#include "Utilities.hpp"
 
 using namespace std;
 
 OrderProcessor::OrderProcessor(const char *filename) {
     this->lineNumber = 0;
     this->filename = filename;
+    this->currentOrderTotal = 0;
 }
 
 void OrderProcessor::registerObserver(Observer *observer) {
@@ -33,11 +35,13 @@ void OrderProcessor::notifyObservers() {
 }
 
 void OrderProcessor::processCustomerRecord(string line) {
+    int customerNo = Utilities::extractNumberFromString(line, 1, 4, lineNumber);
+    string customerName = line.substr(5, line.size() - 4);
     this->currentLine = line;
     this->typeOfRecord = 'C';
     this->lineNumber++;
-    this->registerObserver(new Customer(*this, line));
-    Customer* currentCustomer = dynamic_cast<Customer *>(this->observers.back());
+    this->registerObserver(new Customer(*this, customerNo, customerName));
+    Customer *currentCustomer = dynamic_cast<Customer *>(this->observers.back());
     cout << "OP: customer " << setfill('0') << setw(4) << currentCustomer->getCustomerNumber() << " added\n";
 }
 
@@ -45,16 +49,23 @@ void OrderProcessor::processSaleOrderRecord(string line) {
     this->currentLine = line;
     this->typeOfRecord = 'S';
     this->lineNumber++;
-    notifyObservers();
-    this->invoice++;
-    Customer* currentCustomer = dynamic_cast<Customer *>(this->observers.back());
+    this->currentOrderDate = Utilities::extractNumberFromString(line, 1, 9, this->lineNumber);
+    this->currentOrderType = line.at(9);
+    this->currentOrderQuantity = Utilities::extractNumberFromString(line, 14, 3, this->lineNumber);
+    this->currentCustomerNo = Utilities::extractNumberFromString(line, 10, 4, this->lineNumber);
+    this->currentOrderTotal += currentOrderQuantity;
 
-    if (this->currentOrderType == 'N') {
-        cout << "OP: customer " << setfill('0') << setw(4) << currentCustomer->getCustomerNumber()
-             << ": normal order: quantity " << this->currentOrderQuantity << std::endl;
-    } else if (this->currentOrderType == 'X') {
-        cout << "OP: customer " << setfill('0') << setw(4) << currentCustomer->getCustomerNumber()
-             << ": EXPRESS order: quantity " << this->currentOrderQuantity << std::endl;
+    if (currentOrderType == 'N') {
+        cout << "OP: customer " << setfill('0') << setw(4) << currentCustomerNo
+             << ": normal order: quantity " << currentOrderQuantity << std::endl;
+        notifyObservers();
+    } else if (currentOrderType == 'X') {
+        cout << "OP: customer " << setfill('0') << setw(4) << currentCustomerNo
+             << ": EXPRESS order: quantity " << currentOrderQuantity << std::endl;
+        cout << "OP: customer " << setfill('0') << setw(4) << currentCustomerNo
+             << ": shipped quantity " << currentOrderTotal << endl;
+        notifyObservers();
+        this->invoice++;
     }
 }
 
@@ -62,7 +73,19 @@ void OrderProcessor::processEODRecord(string line) {
     this->currentLine = line;
     this->typeOfRecord = 'E';
     this->lineNumber++;
-    notifyObservers();
+    this->currentEOD = Utilities::extractNumberFromString(line, 1, 8, lineNumber);
+    cout << "OP: end of day " << this->currentEOD << "\n";
+    for(auto &observer : observers) {
+        if(dynamic_cast<Customer *>(observer)->getOrderQuantity() > 0) {
+            cout << "OP: customer " << setfill('0') << setw(4)
+                 << dynamic_cast<Customer *>(observer)->getCustomerNumber()
+                 << ": shipped quantity " << dynamic_cast<Customer *>(observer)->getOrderQuantity() << endl;
+            notifyObservers();
+        }
+    }
+
+//    cout << "OP: customer " << setfill('0') << setw(4) << currentCustomerNo
+//         << ": shipped quantity " << currentOrderTotal << endl;
 }
 
 // read file & check 0th char -> processOrder()
@@ -85,6 +108,7 @@ void OrderProcessor::processFile(const char *filename) {
 
             } else if (line.at(0) == 'E') {
                 processEODRecord(line);
+
             } else {
                 std::cerr << "Error in input file line " << lineNumber
                           << ", invalid line - doesn't start with C, S or E" << std::endl;
@@ -101,7 +125,7 @@ void OrderProcessor::processFile(const char *filename) {
 
 
 // Getters and Setters
-int OrderProcessor::getLineNumber(){
+int OrderProcessor::getLineNumber() {
     return this->lineNumber;
 }
 
@@ -113,12 +137,34 @@ std::string OrderProcessor::getCurrentLine() {
     return this->currentLine;
 }
 
-int OrderProcessor::getInvoice(){
+int OrderProcessor::getInvoice() {
     return this->invoice;
 }
 
-void OrderProcessor::setCurrentOrderInfo(int date, char type, int quantity){
-    this->currentOrderDate = date;
-    this->currentOrderType = type;
-    this->currentOrderQuantity = quantity;
+int OrderProcessor::getCurrentOrderDate() {
+    return this->currentOrderDate;
+}
+
+char OrderProcessor::getCurrentOrderType() {
+    return this->currentOrderType;
+}
+
+int OrderProcessor::getCurrentOrderQuantity() {
+    return this->currentOrderQuantity;
+}
+
+int OrderProcessor::getCurrentCustomerNo() {
+    return this->currentCustomerNo;
+}
+
+int OrderProcessor::getCurrentOrderTotal() {
+    return this->currentOrderTotal;
+}
+
+int OrderProcessor::getCurrentEOD() {
+    return this->currentEOD;
+}
+
+void OrderProcessor::setCurrentOrderTotal(int total) {
+    this->currentOrderTotal = total;
 }

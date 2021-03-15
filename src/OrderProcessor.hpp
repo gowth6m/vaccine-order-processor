@@ -18,9 +18,12 @@ private:
     char typeOfRecord;
     const char *filename;
     int invoice = 1000;
+    int currentEOD;
     int currentOrderDate;
     char currentOrderType;
     int currentOrderQuantity;
+    int currentCustomerNo;
+    int currentOrderTotal;
 
 public:
     OrderProcessor(const char *filename);
@@ -31,7 +34,6 @@ public:
 
     void notifyObservers() override;
 
-
     void processCustomerRecord(std::string line);
 
     void processSaleOrderRecord(std::string line);
@@ -40,7 +42,7 @@ public:
 
     void processFile(const char *filename);
 
-    void processLine(std::string line);
+//    void processLine(std::string line);
 
     std::string getCurrentLine();
 
@@ -50,9 +52,19 @@ public:
 
     int getInvoice();
 
-    void addOrder();
+    int getCurrentOrderDate();
 
-    void setCurrentOrderInfo(int, char, int);
+    char getCurrentOrderType();
+
+    int getCurrentOrderQuantity();
+
+    int getCurrentCustomerNo();
+
+    int getCurrentOrderTotal();
+
+    int getCurrentEOD();
+
+    void setCurrentOrderTotal(int);
 };
 
 #endif //VACCINEORDERSYSTEM_ORDERPROCESSOR_HPP
