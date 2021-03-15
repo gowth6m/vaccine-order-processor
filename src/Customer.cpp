@@ -73,11 +73,13 @@ void Customer::addSalesOrder(std::string saleOrderRecord) {
     this->listOfOrders.push_back(Order(date, type, quantity));
 
     if (type == 'N') {
-        std::cout << "OP: customer " << std::setfill('0') << std::setw(4) << this->customerNumber
-                  << ": normal order: quantity " << quantity << std::endl;
+//        std::cout << "OP: customer " << std::setfill('0') << std::setw(4) << this->customerNumber
+//                  << ": normal order: quantity " << quantity << std::endl;
+        processor.setCurrentOrderInfo(date, type, quantity);
     } else if (type == 'X') {
-        std::cout << "OP: customer " << std::setfill('0') << std::setw(4) << this->customerNumber
-                  << ": EXPRESS order: quantity " << quantity << std::endl;
+//        std::cout << "OP: customer " << std::setfill('0') << std::setw(4) << this->customerNumber
+//                  << ": EXPRESS order: quantity " << quantity << std::endl;
+        processor.setCurrentOrderInfo(date, type, quantity);
         this->orderQuantity = 0;
     } else {
         std::cerr << "Error in input file line " << processor.getLineNumber()

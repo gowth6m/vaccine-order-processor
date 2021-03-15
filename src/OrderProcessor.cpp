@@ -39,7 +39,6 @@ void OrderProcessor::processCustomerRecord(string line) {
     this->registerObserver(new Customer(*this, line));
     Customer* currentCustomer = dynamic_cast<Customer *>(this->observers.back());
     cout << "OP: customer " << setfill('0') << setw(4) << currentCustomer->getCustomerNumber() << " added\n";
-//    free(currentCustomer);
 }
 
 void OrderProcessor::processSaleOrderRecord(string line) {
@@ -48,6 +47,15 @@ void OrderProcessor::processSaleOrderRecord(string line) {
     this->lineNumber++;
     notifyObservers();
     this->invoice++;
+    Customer* currentCustomer = dynamic_cast<Customer *>(this->observers.back());
+
+    if (this->currentOrderType == 'N') {
+        cout << "OP: customer " << setfill('0') << setw(4) << currentCustomer->getCustomerNumber()
+             << ": normal order: quantity " << this->currentOrderQuantity << std::endl;
+    } else if (this->currentOrderType == 'X') {
+        cout << "OP: customer " << setfill('0') << setw(4) << currentCustomer->getCustomerNumber()
+             << ": EXPRESS order: quantity " << this->currentOrderQuantity << std::endl;
+    }
 }
 
 void OrderProcessor::processEODRecord(string line) {
@@ -107,4 +115,10 @@ std::string OrderProcessor::getCurrentLine() {
 
 int OrderProcessor::getInvoice(){
     return this->invoice;
+}
+
+void OrderProcessor::setCurrentOrderInfo(int date, char type, int quantity){
+    this->currentOrderDate = date;
+    this->currentOrderType = type;
+    this->currentOrderQuantity = quantity;
 }

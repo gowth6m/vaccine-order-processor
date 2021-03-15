@@ -7,6 +7,7 @@
 
 #include <vector>
 #include "Subject.hpp"
+//#include "Customer.hpp"
 
 class OrderProcessor : public Subject {
 
@@ -17,6 +18,9 @@ private:
     char typeOfRecord;
     const char *filename;
     int invoice = 1000;
+    int currentOrderDate;
+    char currentOrderType;
+    int currentOrderQuantity;
 
 public:
     OrderProcessor(const char *filename);
@@ -47,6 +51,8 @@ public:
     int getInvoice();
 
     void addOrder();
+
+    void setCurrentOrderInfo(int, char, int);
 };
 
 #endif //VACCINEORDERSYSTEM_ORDERPROCESSOR_HPP
