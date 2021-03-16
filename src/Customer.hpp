@@ -31,11 +31,11 @@ public:
 
     void update() override;
 
-    int getCustomerNumber();
+    int getCustomerNumber() const;
 
-    int getOrderQuantity();
+    int getOrderQuantity() const;
 
-    void processSalesOrder(std::string basicString);
+    void processSalesOrder(const std::string& basicString);
 
     void shipOrders();
 };

@@ -5,11 +5,13 @@
 #ifndef VACCINEORDERSYSTEM_UTILITIES_HPP
 #define VACCINEORDERSYSTEM_UTILITIES_HPP
 
+#include <string>
+#include <iostream>
 
 class Utilities {
 
 public:
-    static int extractNumberFromString(const std::string &line, int startPos, int endPos, int lineNo);
+    static int extractNumberFromString(const std::string &, int, int, int);
 
 };
 

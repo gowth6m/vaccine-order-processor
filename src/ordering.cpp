@@ -11,16 +11,13 @@ using namespace std;
  */
 string getFileExtension(const string &fileName);
 void verifyCommandLineFormat(int argc, char **argv);
-void errorChecker(int err);
 
 /**
  * The Main Function
  */
 int main(int argc, char *argv[]) {
-    /* check format fo the command line args */
     verifyCommandLineFormat(argc, argv);
-
-    OrderProcessor orderProcessor(argv[1]);
+    OrderProcessor orderProcessor;
     orderProcessor.processFile(argv[1]);
     return EXIT_SUCCESS;
 }
@@ -42,25 +39,13 @@ void verifyCommandLineFormat(int argc, char **argv) {
 }
 
 /**
- * Function that takes in error type and outputs the error to stderr
- *
- * @param errNo: the error number
- */
-void errorChecker(int err) {
-    if (err == -1) {
-        // cerr << "Failed opening file: \"" << filename << "\". Error " << errno << ": " << std::strerror(errno) << endl;
-        exit(-1);
-    }
-}
-
-/**
  * Function to get the extension of a file
  *
  * @param fileName: file that you want to get the extension for
  * @return the extension of the file
  */
 string getFileExtension(const string &fileName) {
-    if (fileName.find_last_of(".") != std::string::npos)
-        return fileName.substr(fileName.find_last_of(".") + 1);
+    if (fileName.find_last_of('.') != std::string::npos)
+        return fileName.substr(fileName.find_last_of('.') + 1);
     return "";
 }

@@ -4,11 +4,12 @@
 
 #include <iostream>
 #include <iomanip>
+#include <utility>
 #include "Customer.hpp"
 
 /** Constructor */
 Customer::Customer(OrderProcessor &processor, int customerNo, std::string customerName) : processor(processor) {
-    this->customerName = customerName;
+    this->customerName = std::move(customerName);
     this->orderQuantity = 0;
     this->customerNumber = customerNo;
 }
@@ -31,14 +32,14 @@ void Customer::update() {
     }
 }
 
-void Customer::processSalesOrder(std::string saleOrderRecord) {
+void Customer::processSalesOrder(const std::string& saleOrderRecord) {
 
     if (processor.getCurrentOrderType() == 'N') {
         this->orderQuantity += processor.getCurrentOrderQuantity();
         processor.setCurrentOrderTotal(this->orderQuantity);
-        this->listOfOrders.push_back(Order(processor.getCurrentOrderDate(),
+        this->listOfOrders.emplace_back(processor.getCurrentOrderDate(),
                                            processor.getCurrentOrderType(),
-                                           processor.getCurrentOrderQuantity()));
+                                           processor.getCurrentOrderQuantity());
 
     } else if (processor.getCurrentOrderType() == 'X') {
         this->orderQuantity += processor.getCurrentOrderQuantity();
@@ -64,10 +65,10 @@ void Customer::shipOrders() {
     this->orderQuantity = 0;
 }
 
-int Customer::getCustomerNumber() {
+int Customer::getCustomerNumber() const {
     return this->customerNumber;
 }
 
-int Customer::getOrderQuantity() {
+int Customer::getOrderQuantity() const {
     return this->orderQuantity;
 }

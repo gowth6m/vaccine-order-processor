@@ -6,8 +6,16 @@
 #define VACCINEORDERSYSTEM_ORDERPROCESSOR_HPP
 
 #include <vector>
+#include <cerrno>
+#include <algorithm>
+#include <iomanip>
+#include <iostream>
+#include <fstream>
+#include <cstring>
 #include "Subject.hpp"
-//#include "Customer.hpp"
+#include "Utilities.hpp"
+
+using namespace std;
 
 class OrderProcessor : public Subject {
 
@@ -15,19 +23,18 @@ private:
     std::vector<Observer *> observers;
     std::string currentLine;
     int lineNumber;
-    char typeOfRecord;
-    const char *filename;
+    char typeOfRecord{};
     int invoice = 1000;
-    int currentEOD;
-    int currentOrderDate;
-    char currentOrderType;
-    int currentOrderQuantity;
-    int currentCustomerNo;
+    int currentEOD{};
+    int currentOrderDate{};
+    char currentOrderType{};
+    int currentOrderQuantity{};
+    int currentCustomerNo{};
     int currentOrderTotal;
-    int currentEODCustomer;
+    int currentEODCustomer{};
 
 public:
-    OrderProcessor(const char *filename);
+    OrderProcessor();
 
     void registerObserver(Observer *observer) override;
 
@@ -35,11 +42,11 @@ public:
 
     void notifyObservers() override;
 
-    void processCustomerRecord(std::string line);
+    void processCustomerRecord(const std::string& line);
 
     void processSaleOrderRecord(std::string line);
 
-    void processEODRecord(std::string line);
+    void processEODRecord(const std::string& line);
 
     void processFile(const char *filename);
 
