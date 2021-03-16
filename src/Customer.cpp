@@ -59,6 +59,7 @@ void Customer::shipOrders() {
     std::cout << "SC: customer " << std::setfill('0') << std::setw(4) << this->customerNumber
               << ": invoice " << processor.getInvoice() << ": date " << processor.getCurrentOrderDate()
               << ": quantity " << this->orderQuantity << std::endl;
+    processor.incrementInvoice();
     this->listOfOrders.clear();
     this->orderQuantity = 0;
 }

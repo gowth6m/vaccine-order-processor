@@ -53,8 +53,11 @@ void OrderProcessor::processSaleOrderRecord(string line) {
     this->currentOrderType = line.at(9);
     this->currentOrderQuantity = Utilities::extractNumberFromString(line, 14, 3, this->lineNumber);
     this->currentCustomerNo = Utilities::extractNumberFromString(line, 10, 4, this->lineNumber);
-    this->currentOrderTotal += currentOrderQuantity;
-
+    for(auto &observer : observers) {
+        if(dynamic_cast<Customer *>(observer)->getCustomerNumber() == this->currentCustomerNo) {
+            this->currentOrderTotal = dynamic_cast<Customer *>(observer)->getOrderQuantity() + this->currentOrderQuantity;
+        }
+    }
     if (currentOrderType == 'N') {
         cout << "OP: customer " << setfill('0') << setw(4) << currentCustomerNo
              << ": normal order: quantity " << currentOrderQuantity << std::endl;
@@ -65,7 +68,6 @@ void OrderProcessor::processSaleOrderRecord(string line) {
         cout << "OP: customer " << setfill('0') << setw(4) << currentCustomerNo
              << ": shipped quantity " << currentOrderTotal << endl;
         notifyObservers();
-        this->invoice++;
     }
 }
 
@@ -77,15 +79,13 @@ void OrderProcessor::processEODRecord(string line) {
     cout << "OP: end of day " << this->currentEOD << "\n";
     for(auto &observer : observers) {
         if(dynamic_cast<Customer *>(observer)->getOrderQuantity() > 0) {
+            this->currentEODCustomer = dynamic_cast<Customer *>(observer)->getCustomerNumber();
             cout << "OP: customer " << setfill('0') << setw(4)
                  << dynamic_cast<Customer *>(observer)->getCustomerNumber()
                  << ": shipped quantity " << dynamic_cast<Customer *>(observer)->getOrderQuantity() << endl;
-            notifyObservers();
         }
     }
-
-//    cout << "OP: customer " << setfill('0') << setw(4) << currentCustomerNo
-//         << ": shipped quantity " << currentOrderTotal << endl;
+    notifyObservers();
 }
 
 // read file & check 0th char -> processOrder()
@@ -123,6 +123,9 @@ void OrderProcessor::processFile(const char *filename) {
     }
 }
 
+void OrderProcessor::incrementInvoice() {
+    this->invoice++;
+}
 
 // Getters and Setters
 int OrderProcessor::getLineNumber() {
@@ -163,6 +166,10 @@ int OrderProcessor::getCurrentOrderTotal() {
 
 int OrderProcessor::getCurrentEOD() {
     return this->currentEOD;
+}
+
+int OrderProcessor::getCurrentEODCustomer() {
+    return this->currentEODCustomer;
 }
 
 void OrderProcessor::setCurrentOrderTotal(int total) {

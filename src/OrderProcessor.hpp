@@ -24,6 +24,7 @@ private:
     int currentOrderQuantity;
     int currentCustomerNo;
     int currentOrderTotal;
+    int currentEODCustomer;
 
 public:
     OrderProcessor(const char *filename);
@@ -41,6 +42,8 @@ public:
     void processEODRecord(std::string line);
 
     void processFile(const char *filename);
+
+    void incrementInvoice();
 
 //    void processLine(std::string line);
 
@@ -63,6 +66,8 @@ public:
     int getCurrentOrderTotal();
 
     int getCurrentEOD();
+
+    int getCurrentEODCustomer();
 
     void setCurrentOrderTotal(int);
 };
