@@ -52,14 +52,10 @@ public:
      */
     void shipOrders();
 
-    /**
-     * Getter for customerNumber
-     */
+    /** Getter for customerNumber */
     int getCustomerNumber() const;
 
-    /**
-     * Getter for orderQuantity
-     */
+    /** Getter for orderQuantity */
     int getOrderQuantity() const;
 };
 

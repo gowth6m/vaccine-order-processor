@@ -1,6 +1,13 @@
-//
-// Created by Gowtham Ravindrathas on 15/03/2021.
-//
+/**
+* File:         Utilities.cpp
+*
+* Description:  Contains static utility functions with as error checks.
+*
+* Author:       gowth6m
+*
+* Date:         10/03/2021
+*/
+
 #include <iostream>
 #include <stdexcept>
 #include "Utilities.hpp"
