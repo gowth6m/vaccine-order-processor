@@ -1,9 +1,15 @@
-//
-// Created by Gowtham Ravindrathas on 15/03/2021.
-//
+/**
+* File:         Order.hpp
+*
+* Description:  Represents an order made by a customer.
+*
+* Author:       gowth6m
+*
+* Date:         10/03/2021
+*/
 
-#ifndef VACCINEORDERSYSTEM_ORDER_HPP
-#define VACCINEORDERSYSTEM_ORDER_HPP
+#ifndef __ORDER_HPP
+#define __ORDER_HPP
 
 
 #include <string>
@@ -11,20 +17,37 @@
 class Order {
 
 private:
-    int date;
-    int quantity;
-    char type;
+    int date;       /** order date */
+    int quantity;   /** order quantity */
+    char type;      /** type of order */
 
 public:
+    /**
+     * Constructor
+     */
     Order(int date, char orderType, int quantity);
 
+    /**
+     * Destructor
+     */
+    ~Order();
+
+    /**
+     * Getter for date
+     */
     int getDate();
 
+    /**
+     * Getter for quantity
+     */
     int getQuantity();
 
+    /**
+     * Getter for type of order
+     */
     char getType();
 
 };
 
 
-#endif //VACCINEORDERSYSTEM_ORDER_HPP
+#endif

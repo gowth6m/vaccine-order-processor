@@ -1,6 +1,12 @@
-//
-// Created by Gowtham Ravindrathas on 15/03/2021.
-//
+/**
+* File:         Subject.hpp
+*
+* Description:  Subject interface for observer pattern.
+*
+* Author:       gowth6m
+*
+* Date:         10/03/2021
+*/
 
 #ifndef __SUBJECT_HPP
 #define __SUBJECT_HPP

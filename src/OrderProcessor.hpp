@@ -22,19 +22,21 @@ class OrderProcessor : public Subject {
 private:
     std::vector<Observer *> observers;
     std::string currentLine;
-    int lineNumber;
-    char typeOfRecord{};
+    int lineNumber = 0;
+    int currentOrderTotal = 0;
     int invoice = 1000;
+    char typeOfRecord{};
     int currentEOD{};
     int currentOrderDate{};
     char currentOrderType{};
     int currentOrderQuantity{};
     int currentCustomerNo{};
-    int currentOrderTotal;
     int currentEODCustomer{};
 
 public:
     OrderProcessor();
+
+    ~OrderProcessor();
 
     void registerObserver(Observer *observer) override;
 
@@ -44,17 +46,13 @@ public:
 
     void processCustomerRecord(const std::string& line);
 
-    void processSaleOrderRecord(std::string line);
+    void processSaleOrderRecord(const std::string& line);
 
     void processEODRecord(const std::string& line);
 
     void processFile(const char *filename);
 
     void incrementInvoice();
-
-//    void processLine(std::string line);
-
-    std::string getCurrentLine();
 
     char getTypeOfRecord();
 
@@ -69,10 +67,6 @@ public:
     int getCurrentOrderQuantity();
 
     int getCurrentCustomerNo();
-
-    int getCurrentOrderTotal();
-
-    int getCurrentEOD();
 
     int getCurrentEODCustomer();
 

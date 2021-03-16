@@ -1,21 +1,43 @@
-//
-// Created by Gowtham Ravindrathas on 15/03/2021.
-//
+/**
+* File:         OrderProcessor.cpp
+*
+* Description:  Represents the OrderProcessing entity, implements Subject interface.
+*
+* Author:       gowth6m
+*
+* Date:         10/03/2021
+*/
 
 #include "OrderProcessor.hpp"
 #include "Customer.hpp"
 
+/* using std as a lot of std functions are used */
 using namespace std;
 
-OrderProcessor::OrderProcessor() {
-    this->lineNumber = 0;
-    this->currentOrderTotal = 0;
-}
+/**
+ * Constructor
+ */
+OrderProcessor::OrderProcessor() = default;
 
+/**
+ * Destructor
+ */
+OrderProcessor::~OrderProcessor() = default;
+
+/**
+ * Registers observer by adding to vectors of observers.
+ *
+ * @param observer: pointer to a concrete observer, eg:Customer
+ */
 void OrderProcessor::registerObserver(Observer *observer) {
     observers.push_back(observer);
 }
 
+/**
+ * Unregisters observer by removing from vector. Called in Observer's destructor.
+ *
+ * @param observer: pointer to a concrete observer, eg:Customer
+ */
 void OrderProcessor::removeObserver(Observer *observer) {
     auto iterator = find(observers.begin(), observers.end(), observer);
 
@@ -24,12 +46,30 @@ void OrderProcessor::removeObserver(Observer *observer) {
     }
 }
 
+/**
+ * Notifies all observers registered to this concrete subject hence their update
+ * function is ran.
+ */
 void OrderProcessor::notifyObservers() {
     for (Observer *observer : observers) {
         observer->update();
     }
 }
 
+/**
+ * Increase the invoice number by 1
+ */
+void OrderProcessor::incrementInvoice() {
+    this->invoice++;
+}
+
+/**
+ * Processes a customer record read by the order processor.
+ * Changes states of this class instance depending info read in the line of string.
+ * Changes typeOfRecord to 'C' = Customer Record
+ *
+ * @param line: takes address of the string line being read
+ */
 void OrderProcessor::processCustomerRecord(const string& line) {
     int customerNo = Utilities::extractNumberFromString(line, 1, 4, lineNumber);
     string customerName = line.substr(5, line.size() - 4);
@@ -42,7 +82,14 @@ void OrderProcessor::processCustomerRecord(const string& line) {
               << currentCustomer->getCustomerNumber() << " added\n";
 }
 
-void OrderProcessor::processSaleOrderRecord(string line) {
+/**
+ * Processes a sales order record read by the order processor.
+ * Changes states of this class instance depending info read in the line of string.
+ * Changes typeOfRecord to 'S' = Sales Order Record
+ *
+ * @param line: takes address of the string line being read
+ */
+void OrderProcessor::processSaleOrderRecord(const string& line) {
     this->currentLine = line;
     this->typeOfRecord = 'S';
     this->lineNumber++;
@@ -69,6 +116,13 @@ void OrderProcessor::processSaleOrderRecord(string line) {
     }
 }
 
+/**
+ * Processes a end of day record read by the order processor.
+ * Changes states of this class instance depending info read in the line of string.
+ * Changes typeOfRecord to 'E' = End of Day Record
+ *
+ * @param line: takes address of the string line being read
+ */
 void OrderProcessor::processEODRecord(const string& line) {
     this->currentLine = line;
     this->typeOfRecord = 'E';
@@ -86,9 +140,12 @@ void OrderProcessor::processEODRecord(const string& line) {
     }
 }
 
-// read file & check 0th char -> processOrder()
+/**
+ * This function deals with the read file by checking the first character of each line.
+ *
+ * @param filename: pointer of the file
+ */
 void OrderProcessor::processFile(const char *filename) {
-    // read file -> update typeOfRecord -> check error -> OrderProcessesor(fileLine)
     ifstream inFile;
     string line;
     inFile.open(filename);
@@ -96,16 +153,16 @@ void OrderProcessor::processFile(const char *filename) {
     if (inFile.is_open()) {
         while (!inFile.eof()) {
             getline(inFile, line);
-            /* if C then turn line to Cus rec & add to vec */
+                /* C = process customer record */
             if (line.at(0) == 'C') {
                 processCustomerRecord(line);
-
+                /* S = process sales order record */
             } else if (line.at(0) == 'S') {
                 processSaleOrderRecord(line);
-
+                /* E = process end of day record */
             } else if (line.at(0) == 'E') {
                 processEODRecord(line);
-
+                /* Not a valid starting char so out this message */
             } else {
                 cerr << "Error in input file line " << this->lineNumber
                           << ", invalid line - doesn't start with C, S or E" << endl;
@@ -114,6 +171,7 @@ void OrderProcessor::processFile(const char *filename) {
             }
         }
     } else {
+        /* unable to open the file error message */
         cerr << "Failed opening file: \"" << filename << "\". Error " << errno << ": "
                   << strerror(errno) << endl;
         inFile.close();
@@ -122,55 +180,85 @@ void OrderProcessor::processFile(const char *filename) {
     inFile.close();
 }
 
-void OrderProcessor::incrementInvoice() {
-    this->invoice++;
+/** Getters and Setters: used by observers to see states of the subject **/
+
+/**
+ * Setter for currentOrderTotal
+ *
+ * @param total: current total of the customer being processed
+ */
+void OrderProcessor::setCurrentOrderTotal(int total) {
+    this->currentOrderTotal = total;
 }
 
-// Getters and Setters
+/**
+ * Getter for lineNumber
+ *
+ * @return lineNumber
+ */
 int OrderProcessor::getLineNumber() {
     return this->lineNumber;
 }
 
+/**
+ * Getter for typeOfRecord
+ *
+ * @return typeOfRecord
+ */
 char OrderProcessor::getTypeOfRecord() {
     return this->typeOfRecord;
 }
 
-string OrderProcessor::getCurrentLine() {
-    return this->currentLine;
-}
-
+/**
+ * Getter for invoice
+ *
+ * @return invoice
+ */
 int OrderProcessor::getInvoice() {
     return this->invoice;
 }
 
+/**
+ * Getter for currentOrderDate
+ *
+ * @return currentOrderDate
+ */
 int OrderProcessor::getCurrentOrderDate() {
     return this->currentOrderDate;
 }
 
+/**
+ * Getter for currentOrderType
+ *
+ * @return currentOrderType
+ */
 char OrderProcessor::getCurrentOrderType() {
     return this->currentOrderType;
 }
 
+/**
+ * Getter for currentOrderQuantity
+ *
+ * @return currentOrderQuantity
+ */
 int OrderProcessor::getCurrentOrderQuantity() {
     return this->currentOrderQuantity;
 }
 
+/**
+ * Getter for currentCustomerNo
+ *
+ * @return currentCustomerNo
+ */
 int OrderProcessor::getCurrentCustomerNo() {
     return this->currentCustomerNo;
 }
 
-int OrderProcessor::getCurrentOrderTotal() {
-    return this->currentOrderTotal;
-}
-
-int OrderProcessor::getCurrentEOD() {
-    return this->currentEOD;
-}
-
+/**
+ * Getter for currentEODCustomer
+ *
+ * @return currentEODCustomer
+ */
 int OrderProcessor::getCurrentEODCustomer() {
     return this->currentEODCustomer;
-}
-
-void OrderProcessor::setCurrentOrderTotal(int total) {
-    this->currentOrderTotal = total;
 }

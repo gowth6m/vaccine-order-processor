@@ -1,6 +1,12 @@
-//
-// Created by Gowtham Ravindrathas on 15/03/2021.
-//
+/**
+* File:         Observer.hpp
+*
+* Description:  Observer interface for observer pattern.
+*
+* Author:       gowth6m
+*
+* Date:         10/03/2021
+*/
 
 #ifndef __OBSERVER_HPP
 #define __OBSERVER_HPP
