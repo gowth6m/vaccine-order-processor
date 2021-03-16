@@ -61,7 +61,6 @@ void OrderProcessor::processSaleOrderRecord(string line) {
                   << ": normal order: quantity " << currentOrderQuantity << "\n";
         notifyObservers();
     } else if (currentOrderType == 'X') {
-        cout << "------------------------\n";
         cout << "OP: customer " << setfill('0') << setw(4) << currentCustomerNo
                   << ": EXPRESS order: quantity " << currentOrderQuantity << "\n";
         cout << "OP: customer " << setfill('0') << setw(4) << currentCustomerNo
@@ -75,7 +74,6 @@ void OrderProcessor::processEODRecord(const string& line) {
     this->typeOfRecord = 'E';
     this->lineNumber++;
     this->currentEOD = Utilities::extractNumberFromString(line, 1, 8, lineNumber);
-    cout << "------------------------\n";
     cout << "OP: end of day " << this->currentEOD << "\n";
     for (auto &observer : observers) {
         if (dynamic_cast<Customer *>(observer)->getOrderQuantity() > 0) {
@@ -83,9 +81,9 @@ void OrderProcessor::processEODRecord(const string& line) {
             cout << "OP: customer " << setfill('0') << setw(4)
                  << dynamic_cast<Customer *>(observer)->getCustomerNumber()
                  << ": shipped quantity " << dynamic_cast<Customer *>(observer)->getOrderQuantity() << endl;
+            notifyObservers();
         }
     }
-    notifyObservers();
 }
 
 // read file & check 0th char -> processOrder()

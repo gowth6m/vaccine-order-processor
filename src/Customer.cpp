@@ -26,7 +26,7 @@ void Customer::update() {
             processSalesOrder(processor.getCurrentLine());
         }
     } else if (processor.getTypeOfRecord() == 'E') {
-        if (this->orderQuantity > 0) {
+        if (this->orderQuantity > 0 && this->customerNumber == processor.getCurrentEODCustomer()) {
             shipOrders();
         }
     }
