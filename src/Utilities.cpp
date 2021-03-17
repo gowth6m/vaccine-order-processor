@@ -102,3 +102,15 @@ void Utilities::validateLastLine(std::string line) {
         exit(-1);
     }
 }
+
+/**
+ * Function to get the extension of a file
+ *
+ * @param fileName: file that you want to get the extension for
+ * @return the extension of the file
+ */
+std::string Utilities::getFileExtension(const std::string &fileName) {
+    if (fileName.find_last_of('.') != std::string::npos)
+        return fileName.substr(fileName.find_last_of('.') + 1);
+    return "";
+}

@@ -36,6 +36,11 @@ public:
      * Function to check if the last line has the correct length since it doesn't have '\n' or '\r'.
      */
     static void validateLastLine(std::string);
+
+    /**
+     * Function to get the extension of the input file.
+     */
+    static std::string getFileExtension(const std::string &);
 };
 
 

@@ -18,7 +18,6 @@ using namespace std;
 /**
  * Function prototypes
  */
-string getFileExtension(const string &fileName);
 void verifyCommandLineFormat(int argc, char **argv);
 void errCheck(int err, OrderProcessor p);
 
@@ -42,22 +41,10 @@ void verifyCommandLineFormat(int argc, char **argv) {
         cerr << "Invalid format. The correct format is:\n./ordering <inputFile>\n";
         exit(-1);
     }
-    if (getFileExtension(argv[1]) != "txt") {
+    if (Utilities::getFileExtension(argv[1]) != "txt") {
         cerr << "Invalid file type. Use a \".txt\" file\n";
         exit(-1);
     }
-}
-
-/**
- * Function to get the extension of a file
- *
- * @param fileName: file that you want to get the extension for
- * @return the extension of the file
- */
-string getFileExtension(const string &fileName) {
-    if (fileName.find_last_of('.') != std::string::npos)
-        return fileName.substr(fileName.find_last_of('.') + 1);
-    return "";
 }
 
 /**
