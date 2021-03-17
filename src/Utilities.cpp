@@ -8,8 +8,6 @@
 * Date:         10/03/2021
 */
 
-#include <iostream>
-#include <stdexcept>
 #include "Utilities.hpp"
 
 /**
@@ -75,14 +73,16 @@ char Utilities::extractOrderType(const std::string &line, int pos, int lineNo) {
  * @param lineNo: the line number on input file (used for error processing
  * @param recordType: the type of record to output in error message
  */
-void Utilities::checkStringLen(const std::string &line, int len, int lineNo, std::string recordType) {
-    if (line.length() > len) {
-        std::cerr << "Error in input file line "
-                  << lineNo
-                  << ": invalid line length for "
-                  << recordType
-                  << std::endl;
-        exit(-1);
+void Utilities::checkStringLen(const std::string &line, int len, int lineNo, std::string recordType, int lineCounter) {
+    if(lineNo != lineCounter) {
+        if (line.length() != len) {
+            std::cerr << "Error in input file line "
+                      << lineNo
+                      << ": invalid line length for "
+                      << recordType
+                      << std::endl;
+            exit(-1);
+        }
     }
 }
 

@@ -39,6 +39,8 @@ private:
     int currentOrderQuantity{};          /** current order quantity of the customer being processed */
     int currentCustomerNo{};             /** currently being processed unique customer number */
     int currentEODCustomer{};            /** currently being processed customer number for EOD function */
+    int largestEOD = 0;                  /** keeps track of the largest date */
+    int lineCounter;                     /** to keep track of number of lines in file, needed for error checks */
 
 public:
     /**
@@ -80,9 +82,19 @@ public:
     void validateOrderDate(int);
 
     /**
+     * Updates number of lines in the input file.
+     */
+    void updateNoOfLines(const string &filename);
+
+    /**
      * Increase the invoice number by 1
      */
     void incrementInvoice();
+
+    /**
+     * Updates the largest date for EOD record
+     */
+    void updateLargestEOD();
 
     /**
      * Processes a customer record read by the order processor.

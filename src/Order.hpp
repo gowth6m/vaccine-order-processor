@@ -36,7 +36,7 @@ public:
     /**
      * Getter for date
      */
-    int getDate();
+    Date *getDate();
 
     /**
      * Getter for quantity

@@ -83,13 +83,24 @@ void OrderProcessor::validateCustomerNo(int customerNo) {
  * @param date: the date wanting to be validated
  */
 void OrderProcessor::validateOrderDate(int date) {
-    if (!this->endOfDates.empty()) {
-        if (date <= this->endOfDates.back()->getDate()) {
-            std::cerr << "Error in input file line " << this->lineNumber
-                      << ": invalid date in record" << std::endl;
-            exit(-1);
-        }
+    if (date <= this->largestEOD) {
+        std::cerr << "Error in input file line " << this->lineNumber
+                  << ": invalid date in record" << std::endl;
+        exit(-1);
     }
+}
+
+/**
+ * Updates number of lines in the input file.
+ *
+ * @param filename: input file name
+ */
+void OrderProcessor::updateNoOfLines(const string &filename) {
+    ifstream lineCount;
+    string tempLine;
+    lineCount.open(filename);
+    for(this->lineCounter = 0; std::getline(lineCount,tempLine); this->lineCounter++);
+    lineCount.close();
 }
 
 /**
@@ -97,6 +108,17 @@ void OrderProcessor::validateOrderDate(int date) {
  */
 void OrderProcessor::incrementInvoice() {
     this->invoice++;
+}
+
+/**
+ * Updates the largest date for EOD record
+ */
+void OrderProcessor::updateLargestEOD() {
+    if (!this->endOfDates.empty()) {
+        if (this->endOfDates.back()->getDate() > this->largestEOD) {
+            this->largestEOD = this->endOfDates.back()->getDate();
+        }
+    }
 }
 
 /**
@@ -127,8 +149,12 @@ void OrderProcessor::processCustomerRecord(const string &line) {
 void OrderProcessor::processSaleOrderRecord(const string &line) {
 
     /* checking if length of line is valid for sales order */
-    Utilities::checkStringLen(line, 18, this->lineNumber, "Sales order record");
+    Utilities::checkStringLen(line, 18, this->lineNumber, "Sales order record", this->lineCounter);
 
+    /* updating the latest date tracker */
+    updateLargestEOD();
+
+    /* updating all other read states */
     this->typeOfRecord = 'S';
     this->orderDates.push_back(new Date(Date::getDateFromRecord(line, this->lineNumber), this->lineNumber));
     this->currentOrderType = Utilities::extractOrderType(line, 9, this->lineNumber);
@@ -172,11 +198,14 @@ void OrderProcessor::processSaleOrderRecord(const string &line) {
 void OrderProcessor::processEODRecord(const string &line) {
 
     /* checking if length of line is valid for eod record */
-    Utilities::checkStringLen(line, 10, this->lineNumber, "EOD record");
+    Utilities::checkStringLen(line, 10, this->lineNumber, "EOD record", this->lineCounter);
 
     this->typeOfRecord = 'E';
     std::string temp = Date::getDateFromRecord(line, this->lineNumber);
     this->endOfDates.push_back(new Date(temp, this->lineNumber));
+
+    /* validates if date hasn't surpassed recent EOD date */
+    validateOrderDate(this->endOfDates.back()->getDate());
 
     cout << "OP: end of day " << this->endOfDates.back()->getDate() << "\n";
     for (auto &observer : observers) {
@@ -198,6 +227,8 @@ void OrderProcessor::processEODRecord(const string &line) {
  */
 int OrderProcessor::processFile(const char *filename) {
 
+    /* to update number of lines in file */
+    updateNoOfLines(filename);
     this->currentFile = filename;
     ifstream inFile;
     string line;

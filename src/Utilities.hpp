@@ -13,6 +13,7 @@
 
 #include <string>
 #include <iostream>
+#include <stdexcept>
 
 class Utilities {
 
@@ -30,7 +31,7 @@ public:
     /**
      * Function to check if the string length is correct for the input file.
      */
-    static void checkStringLen(const std::string &, int, int, std::string);
+    static void checkStringLen(const std::string &, int, int, std::string, int);
 
     /**
      * Function to check if the last line has the correct length since it doesn't have '\n' or '\r'.

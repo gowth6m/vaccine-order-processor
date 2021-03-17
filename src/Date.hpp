@@ -12,6 +12,9 @@
 #define __DATE_HPP
 
 #include <cmath>
+#include <string>
+#include <stdexcept>
+#include <iostream>
 #include "Utilities.hpp"
 
 class Date {

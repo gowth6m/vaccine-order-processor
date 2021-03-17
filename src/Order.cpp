@@ -33,8 +33,8 @@ Order::~Order() = default;
  *
  * @return date
  */
-int Order::getDate() {
-    return 0;
+Date *Order::getDate() {
+    return this->date;
 }
 
 /**
@@ -43,7 +43,7 @@ int Order::getDate() {
  * @return quantity
  */
 int Order::getQuantity() {
-    return 0;
+    return this->quantity;
 }
 
 /**
@@ -52,5 +52,5 @@ int Order::getQuantity() {
  * @return type
  */
 char Order::getType() {
-    return 0;
+    return this->type;
 }

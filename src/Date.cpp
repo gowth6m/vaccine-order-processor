@@ -8,7 +8,6 @@
 * Date:         10/03/2021
 */
 
-#include <string>
 #include "Date.hpp"
 
 /**
