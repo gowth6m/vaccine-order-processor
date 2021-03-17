@@ -3,7 +3,7 @@
 *
 * Description:  Represents the OrderProcessing entity, implements Subject interface.
 *
-* Author:       gowth6m
+* Author:       074038
 *
 * Date:         10/03/2021
 */
@@ -57,6 +57,42 @@ void OrderProcessor::notifyObservers() {
 }
 
 /**
+ * Validates if the customer number is already registered, else it's invalid and
+ * outputs error message.
+ *
+ * @param customerNo: customer number
+ */
+void OrderProcessor::validateCustomerNo(int customerNo) {
+    bool exist = false;
+    for (auto observer : observers) {
+        if (customerNo == dynamic_cast<Customer *>(observer)->getCustomerNumber()) {
+            exist = true;
+        }
+    }
+    if (!exist) {
+        std::cerr << "Error in input file line " << this->lineNumber
+                  << ": unregistered customer number found: "
+                  << customerNo << std::endl;
+        exit(-1);
+    }
+}
+
+/**
+ * Checks if the date passed in has already passed the EOD date.
+ *
+ * @param date: the date wanting to be validated
+ */
+void OrderProcessor::validateOrderDate(int date) {
+    if (!this->endOfDates.empty()) {
+        if (date <= this->endOfDates.back()->getDate()) {
+            std::cerr << "Error in input file line " << this->lineNumber
+                      << ": invalid date in record" << std::endl;
+            exit(-1);
+        }
+    }
+}
+
+/**
  * Increase the invoice number by 1
  */
 void OrderProcessor::incrementInvoice() {
@@ -70,16 +106,15 @@ void OrderProcessor::incrementInvoice() {
  *
  * @param line: takes address of the string line being read
  */
-void OrderProcessor::processCustomerRecord(const string& line) {
+void OrderProcessor::processCustomerRecord(const string &line) {
     int customerNo = Utilities::extractNumberFromString(line, 1, 4, lineNumber);
     string customerName = line.substr(5, line.size() - 4);
-    this->currentLine = line;
     this->typeOfRecord = 'C';
-    this->lineNumber++;
     this->registerObserver(new Customer(*this, customerNo, customerName));
     auto *currentCustomer = dynamic_cast<Customer *>(this->observers.back());
     cout << "OP: customer " << setfill('0') << setw(4)
-              << currentCustomer->getCustomerNumber() << " added\n";
+         << currentCustomer->getCustomerNumber() << " added\n";
+    this->lineNumber++;
 }
 
 /**
@@ -89,31 +124,42 @@ void OrderProcessor::processCustomerRecord(const string& line) {
  *
  * @param line: takes address of the string line being read
  */
-void OrderProcessor::processSaleOrderRecord(const string& line) {
-    this->currentLine = line;
+void OrderProcessor::processSaleOrderRecord(const string &line) {
+
+    /* checking if length of line is valid for sales order */
+    Utilities::checkStringLen(line, 18, this->lineNumber, "Sales order record");
+
     this->typeOfRecord = 'S';
-    this->lineNumber++;
-    this->currentOrderDate = Utilities::extractNumberFromString(line, 1, 9, this->lineNumber);
-    this->currentOrderType = line.at(9);
+    this->orderDates.push_back(new Date(Date::getDateFromRecord(line, this->lineNumber), this->lineNumber));
+    this->currentOrderType = Utilities::extractOrderType(line, 9, this->lineNumber);
     this->currentOrderQuantity = Utilities::extractNumberFromString(line, 14, 3, this->lineNumber);
     this->currentCustomerNo = Utilities::extractNumberFromString(line, 10, 4, this->lineNumber);
+
+    /* validates if customer number read is first registered from customer record */
+    validateCustomerNo(this->currentCustomerNo);
+    /* validates if date hasn't surpassed recent EOD date */
+    validateOrderDate(this->orderDates.back()->getDate());
+
+    /* updating current total for the processing customer */
     for (auto &observer : observers) {
         if (dynamic_cast<Customer *>(observer)->getCustomerNumber() == this->currentCustomerNo) {
             this->currentOrderTotal =
                     dynamic_cast<Customer *>(observer)->getOrderQuantity() + this->currentOrderQuantity;
         }
     }
+
     if (currentOrderType == 'N') {
         cout << "OP: customer " << setfill('0') << setw(4) << currentCustomerNo
-                  << ": normal order: quantity " << currentOrderQuantity << "\n";
+             << ": normal order: quantity " << currentOrderQuantity << "\n";
         notifyObservers();
     } else if (currentOrderType == 'X') {
         cout << "OP: customer " << setfill('0') << setw(4) << currentCustomerNo
-                  << ": EXPRESS order: quantity " << currentOrderQuantity << "\n";
+             << ": EXPRESS order: quantity " << currentOrderQuantity << "\n";
         cout << "OP: customer " << setfill('0') << setw(4) << currentCustomerNo
-                  << ": shipped quantity " << currentOrderTotal << "\n";
+             << ": shipped quantity " << currentOrderTotal << "\n";
         notifyObservers();
     }
+    this->lineNumber++;
 }
 
 /**
@@ -123,12 +169,16 @@ void OrderProcessor::processSaleOrderRecord(const string& line) {
  *
  * @param line: takes address of the string line being read
  */
-void OrderProcessor::processEODRecord(const string& line) {
-    this->currentLine = line;
+void OrderProcessor::processEODRecord(const string &line) {
+
+    /* checking if length of line is valid for eod record */
+    Utilities::checkStringLen(line, 10, this->lineNumber, "EOD record");
+
     this->typeOfRecord = 'E';
-    this->lineNumber++;
-    this->currentEOD = Utilities::extractNumberFromString(line, 1, 8, lineNumber);
-    cout << "OP: end of day " << this->currentEOD << "\n";
+    std::string temp = Date::getDateFromRecord(line, this->lineNumber);
+    this->endOfDates.push_back(new Date(temp, this->lineNumber));
+
+    cout << "OP: end of day " << this->endOfDates.back()->getDate() << "\n";
     for (auto &observer : observers) {
         if (dynamic_cast<Customer *>(observer)->getOrderQuantity() > 0) {
             this->currentEODCustomer = dynamic_cast<Customer *>(observer)->getCustomerNumber();
@@ -138,6 +188,7 @@ void OrderProcessor::processEODRecord(const string& line) {
             notifyObservers();
         }
     }
+    this->lineNumber++;
 }
 
 /**
@@ -145,39 +196,42 @@ void OrderProcessor::processEODRecord(const string& line) {
  *
  * @param filename: pointer of the file
  */
-void OrderProcessor::processFile(const char *filename) {
+int OrderProcessor::processFile(const char *filename) {
+
+    this->currentFile = filename;
     ifstream inFile;
     string line;
     inFile.open(filename);
 
     if (inFile.is_open()) {
         while (!inFile.eof()) {
-            getline(inFile, line);
-                /* C = process customer record */
-            if (line.at(0) == 'C') {
-                processCustomerRecord(line);
-                /* S = process sales order record */
-            } else if (line.at(0) == 'S') {
-                processSaleOrderRecord(line);
-                /* E = process end of day record */
-            } else if (line.at(0) == 'E') {
-                processEODRecord(line);
-                /* Not a valid starting char so out this message */
-            } else {
-                cerr << "Error in input file line " << this->lineNumber
-                          << ", invalid line - doesn't start with C, S or E" << endl;
+            try {
+                getline(inFile, line);
+                if (line.at(0) == 'C') {                /* C = process customer record */
+                    processCustomerRecord(line);
+                } else if (line.at(0) == 'S') {         /* S = process sales order record */
+                    processSaleOrderRecord(line);
+                } else if (line.at(0) == 'E') {         /* E = process end of day record */
+                    processEODRecord(line);
+                } else if (line.length() <= 1) {
+                    inFile.close();
+                    return -1;                             /* -1: Empty line error with '\n' */
+                } else {
+                    inFile.close();
+                    return -2;                             /* -2: Not a valid starting char */
+                }
+            } catch (out_of_range &e) {
                 inFile.close();
-                exit(-1);
+                return -3;                                 /* -3: Last line is empty */
             }
         }
+        Utilities::validateLastLine(line);
     } else {
-        /* unable to open the file error message */
-        cerr << "Failed opening file: \"" << filename << "\". Error " << errno << ": "
-                  << strerror(errno) << endl;
         inFile.close();
-        exit(-1);
+        return -4;                                         /* -4: Invalid starting char */
     }
     inFile.close();
+    return 0;
 }
 
 /** Getters and Setters: used by observers to see states of the subject **/
@@ -223,8 +277,8 @@ int OrderProcessor::getInvoice() {
  *
  * @return currentOrderDate
  */
-int OrderProcessor::getCurrentOrderDate() {
-    return this->currentOrderDate;
+Date *OrderProcessor::getCurrentOrderDate() {
+    return this->orderDates.back();
 }
 
 /**
@@ -261,4 +315,13 @@ int OrderProcessor::getCurrentCustomerNo() {
  */
 int OrderProcessor::getCurrentEODCustomer() {
     return this->currentEODCustomer;
+}
+
+/**
+ * Getter for currentFile
+ *
+ * @return currentFile
+ */
+std::string OrderProcessor::getCurrentFile() {
+    return this->currentFile;
 }

@@ -3,7 +3,7 @@
 *
 * Description:  Represents an order made by a customer.
 *
-* Author:       gowth6m
+* Author:       074038
 *
 * Date:         10/03/2021
 */
@@ -17,7 +17,7 @@
  * @param type: type of order eg:N(normal) or X(express)
  * @param quantity: the amount of order
  */
-Order::Order(int date, char type, int quantity) {
+Order::Order(Date *date, char type, int quantity) : date(date) {
     this->date = date;
     this->type = type;
     this->quantity = quantity;

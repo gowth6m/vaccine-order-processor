@@ -3,7 +3,7 @@
 *
 * Description:  Represents the OrderProcessing entity, implements Subject interface.
 *
-* Author:       gowth6m
+* Author:       074038
 *
 * Date:         10/03/2021
 */
@@ -20,6 +20,7 @@
 #include <cstring>
 #include "Subject.hpp"
 #include "Utilities.hpp"
+#include "Date.hpp"
 
 using namespace std;
 
@@ -27,13 +28,13 @@ class OrderProcessor : public Subject {
 
 private:
     std::vector<Observer *> observers;   /** vector of observers registered to an instance of orderProcessor */
-    std::string currentLine;             /** current line from inputFile read by the orderProcessor */
-    int lineNumber = 0;                  /** line number of the input file - used for error output */
+    std::vector<Date *> endOfDates;      /** vector of dates of End of dates records */
+    std::vector<Date *> orderDates;      /** vector of dates of Sale order dates */
+    std::string currentFile;             /** name of the current file */
+    int lineNumber = 1;                  /** line number of the input file - used for error output */
     int currentOrderTotal = 0;           /** current order total of the customer being processed */
     int invoice = 1000;                  /** invoice for customers when order shipped, starting from 1000 */
     char typeOfRecord{};                 /** type of record read by the for the line in input file */
-    int currentEOD{};                    /** the date of the end of day record being processed */
-    int currentOrderDate{};              /** date of the sales order being processed */
     char currentOrderType{};             /** type for current sales order - eg:normal or express */
     int currentOrderQuantity{};          /** current order quantity of the customer being processed */
     int currentCustomerNo{};             /** currently being processed unique customer number */
@@ -69,6 +70,16 @@ public:
     void notifyObservers() override;
 
     /**
+     * Validates if the customer number already registered, else it's invalid.
+     */
+    void validateCustomerNo(int);
+
+    /**
+     * Checks if the date passed in has already passed the EOD date.
+     */
+    void validateOrderDate(int);
+
+    /**
      * Increase the invoice number by 1
      */
     void incrementInvoice();
@@ -91,7 +102,7 @@ public:
     /**
      * This function deals with the read file by checking the first character of each line.
      */
-    void processFile(const char *);
+    int processFile(const char *);
 
     /** Getters and Setters: used by observers to see states of the subject **/
 
@@ -108,7 +119,7 @@ public:
     int getInvoice();
 
     /** Getter for currentOrderDate */
-    int getCurrentOrderDate();
+    Date *getCurrentOrderDate();
 
     /** Getter for currentOrderType */
     char getCurrentOrderType();
@@ -121,6 +132,9 @@ public:
 
     /** Getter for currentEODCustomer */
     int getCurrentEODCustomer();
+
+    /** Getter for currentFile */
+    std::string getCurrentFile();
 };
 
 #endif

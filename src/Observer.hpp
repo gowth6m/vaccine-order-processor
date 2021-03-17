@@ -3,7 +3,7 @@
 *
 * Description:  Observer interface for observer pattern.
 *
-* Author:       gowth6m
+* Author:       074038
 *
 * Date:         10/03/2021
 */

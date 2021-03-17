@@ -3,7 +3,7 @@
 *
 * Description:  Represents an order made by a customer.
 *
-* Author:       gowth6m
+* Author:       074038
 *
 * Date:         10/03/2021
 */
@@ -13,11 +13,12 @@
 
 
 #include <string>
+#include "Date.hpp"
 
 class Order {
 
 private:
-    int date;       /** order date */
+    Date* date;     /** order date */
     int quantity;   /** order quantity */
     char type;      /** type of order */
 
@@ -25,7 +26,7 @@ public:
     /**
      * Constructor
      */
-    Order(int date, char orderType, int quantity);
+    Order(Date *date, char orderType, int quantity);
 
     /**
      * Destructor

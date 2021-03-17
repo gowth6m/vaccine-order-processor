@@ -3,7 +3,7 @@
 *
 * Description:  Represents a Customer of the order system, implements Observer interface.
 *
-* Author:       gowth6m
+* Author:       074038
 *
 * Date:         10/03/2021
 */
@@ -71,9 +71,7 @@ void Customer::processSalesOrder() {
     if (processor.getCurrentOrderType() == 'N') {
         this->orderQuantity += processor.getCurrentOrderQuantity();
         processor.setCurrentOrderTotal(this->orderQuantity);
-        this->listOfOrders.emplace_back(processor.getCurrentOrderDate(),
-                                        processor.getCurrentOrderType(),
-                                        processor.getCurrentOrderQuantity());
+        this->listOfOrders.push_back(new Order(processor.getCurrentOrderDate(), processor.getCurrentOrderType(), processor.getCurrentOrderQuantity()));
         /* X = express order */
     } else if (processor.getCurrentOrderType() == 'X') {
         this->orderQuantity += processor.getCurrentOrderQuantity();
@@ -83,10 +81,19 @@ void Customer::processSalesOrder() {
     } else {
         std::cerr << "Error in input file line "
                   << processor.getLineNumber()
-                  << ": sale order type invalid"
+                  << ": sales order type invalid"
                   << std::endl;
         exit(-1);
     }
+}
+
+/**
+ * Sends invoice to customer.
+ */
+void Customer::sendInvoice() {
+    std::cout << "SC: customer " << std::setfill('0') << std::setw(4) << this->customerNumber
+              << ": invoice " << processor.getInvoice() << ": date " << processor.getCurrentOrderDate()->getDate()
+              << ": quantity " << this->orderQuantity << std::endl;
 }
 
 /**
@@ -95,9 +102,8 @@ void Customer::processSalesOrder() {
  * Output a message, increases invoice counter and resets orderQuantity and listOfOrders for instance of this class.
  */
 void Customer::shipOrders() {
-    std::cout << "SC: customer " << std::setfill('0') << std::setw(4) << this->customerNumber
-              << ": invoice " << processor.getInvoice() << ": date " << processor.getCurrentOrderDate()
-              << ": quantity " << this->orderQuantity << std::endl;
+    sendInvoice();
+    /* telling processor invoice has been sent */
     processor.incrementInvoice();
     /* clear the vector of orders, since they are all shipped & quantity reset to 0 */
     this->listOfOrders.clear();

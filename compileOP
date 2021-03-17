@@ -1,10 +1,11 @@
 #!/bin/sh
 
 g++ -std=c++11 -c ./src/Utilities.cpp -o ./src/Utilities.o
+g++ -std=c++11 -c ./src/Date.cpp -o ./src/Date.o
 g++ -std=c++11 -c ./src/Order.cpp -o ./src/Order.o
 g++ -std=c++11 -c ./src/Customer.cpp -o ./src/Customer.o
 g++ -std=c++11 -c ./src/OrderProcessor.cpp -o ./src/OrderProcessor.o
 
-g++ -std=c++11 -o ordering ./src/ordering.cpp ./src/OrderProcessor.o ./src/Customer.o ./src/Order.o ./src/Utilities.o
+g++ -std=c++11 -o ordering ./src/ordering.cpp ./src/OrderProcessor.o ./src/Customer.o ./src/Order.o ./src/Date.o ./src/Utilities.o
 
-rm ./src/OrderProcessor.o ./src/Customer.o ./src/Order.o ./src/Utilities.o
+rm ./src/OrderProcessor.o ./src/Customer.o ./src/Order.o ./src/Date.o ./src/Utilities.o

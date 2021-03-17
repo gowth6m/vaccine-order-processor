@@ -3,7 +3,7 @@
 *
 * Description:  Contains static utility functions with as error checks.
 *
-* Author:       gowth6m
+* Author:       074038
 *
 * Date:         10/03/2021
 */
@@ -17,8 +17,25 @@
 class Utilities {
 
 public:
+    /**
+     * Function to extract a number from a string.
+     */
     static int extractNumberFromString(const std::string &, int, int, int);
 
+    /**
+     * Function to extract order type from input file line.
+     */
+    static char extractOrderType(const std::string &, int, int);
+
+    /**
+     * Function to check if the string length is correct for the input file.
+     */
+    static void checkStringLen(const std::string &, int, int, std::string);
+
+    /**
+     * Function to check if the last line has the correct length since it doesn't have '\n' or '\r'.
+     */
+    static void validateLastLine(std::string);
 };
 
 

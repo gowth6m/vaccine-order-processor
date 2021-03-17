@@ -3,7 +3,7 @@
 *
 * Description:  Represents a Customer of the order system, implements Observer interface.
 *
-* Author:       gowth6m
+* Author:       074038
 *
 * Date:         10/03/2021
 */
@@ -19,11 +19,11 @@
 class Customer : public Observer {
 
 private:
-    OrderProcessor &processor;         /** pointer to the OrderProcessor(Subject) */
-    std::string customerName;          /** name of the customer */
-    int customerNumber;                /** customer's unique number, can't be 0000 */
-    int orderQuantity;                 /** the amount the customer ordered */
-    std::vector<Order> listOfOrders;   /** vector holding all customer orders */
+    OrderProcessor &processor;             /** pointer to the OrderProcessor(Subject) */
+    std::string customerName;              /** name of the customer */
+    int customerNumber;                    /** customer's unique number, can't be 0000 */
+    int orderQuantity;                     /** the amount the customer ordered */
+    std::vector<Order *> listOfOrders;     /** vector holding all customer orders */
 
 public:
 
@@ -46,6 +46,11 @@ public:
      * Function that runs when SaleOrder is read in the OrderProcessor.
      */
     void processSalesOrder();
+
+    /**
+     * Sends invoice to customer.
+     */
+    void sendInvoice();
 
     /**
      * Function to ship orders.
