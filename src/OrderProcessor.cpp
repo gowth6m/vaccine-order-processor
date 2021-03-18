@@ -176,13 +176,13 @@ void OrderProcessor::processSaleOrderRecord(const string &line) {
 
     if (currentOrderType == 'N') {
         cout << "OP: customer " << setfill('0') << setw(4) << currentCustomerNo
-             << ": normal order: quantity " << currentOrderQuantity << "\n";
+             << ": normal order: quantity " << currentOrderQuantity << endl;
         notifyObservers();
     } else if (currentOrderType == 'X') {
         cout << "OP: customer " << setfill('0') << setw(4) << currentCustomerNo
-             << ": EXPRESS order: quantity " << currentOrderQuantity << "\n";
+             << ": EXPRESS order: quantity " << currentOrderQuantity << endl;
         cout << "OP: customer " << setfill('0') << setw(4) << currentCustomerNo
-             << ": shipped quantity " << currentOrderTotal << "\n";
+             << ": shipped quantity " << currentOrderTotal << endl;
         notifyObservers();
     }
     this->lineNumber++;
@@ -207,7 +207,7 @@ void OrderProcessor::processEODRecord(const string &line) {
     /* validates if date hasn't surpassed recent EOD date */
     validateOrderDate(this->endOfDates.back()->getDate());
 
-    cout << "OP: end of day " << this->endOfDates.back()->getDate() << "\n";
+    cout << "OP: end of day " << this->endOfDates.back()->getDate() << endl;
     for (auto &observer : observers) {
         if (dynamic_cast<Customer *>(observer)->getOrderQuantity() > 0) {
             this->currentEODCustomer = dynamic_cast<Customer *>(observer)->getCustomerNumber();
